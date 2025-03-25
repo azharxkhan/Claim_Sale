@@ -31,13 +31,13 @@ def get_next_id():
         return last_id + 1
 
 
-def add_card(name: str, price: float, image_path: str):
-    """Adds a new card to the inventory."""
-    card_id = get_next_id()
+def add_card(card_number: int, name: str, price: float, image_path: str):
+    """Adds a new card to the inventory with a unique card ID and other details."""
+    card_id = card_number
     with open(CSV_FILE, mode="a", newline="") as file:
         writer = csv.writer(file)
         writer.writerow([card_id, name, price, image_path, "unsold", ""])
-    print(f"Card '{name}' added successfully with ID {card_id}.")
+    print(f"Card '{name}' added successfully with ID {card_id}. Price: {price} and Image Path: {image_path}")
 
 
 def get_available_cards():
