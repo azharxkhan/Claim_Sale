@@ -30,7 +30,6 @@ def get_next_id():
         last_id = int(rows[-1][0])  # Get the last ID in the file
         return last_id + 1
 
-
 def add_card(card_number: int, name: str, price: float, image_path: str):
     """Adds a new card to the inventory with a unique card ID and other details."""
     card_id = card_number
