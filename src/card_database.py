@@ -1,11 +1,100 @@
-def add_card(name: str, price: float, image_path: str) -> None:
-    """Add a new card to the inventory (cards.csv)."""
+import csv
+import os
 
-def get_available_cards() -> list:
-    """Fetch all available (unsold) cards from the inventory."""
+CSV_FILE = os.path.join(os.path.dirname(__file__), "../data/cards.csv")
 
-def mark_card_as_sold(card_id: int, phone_number: str) -> bool:
-    """Mark a card as sold and store the buyer's phone number."""
 
-def remove_old_inventory() -> None:
-    """Remove all sold cards from the inventory."""
+def initialize_csv():
+    """Creates the CSV file if it doesn't exist or Deletes old CSV file and creates a new one with headers."""
+    if os.path.exists(CSV_FILE):
+        os.remove(CSV_FILE)
+        print("Old inventory removed. New CSV initialized.")
+
+    with open(CSV_FILE, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["ID", "Name", "Price", "Image Path", "Status", "Claimed By (Phone Number)"])
+
+def get_next_id():
+    """Finds the next available ID for a new card."""
+    if not os.path.exists(CSV_FILE):
+        return 1
+
+    with open(CSV_FILE, mode="r", newline="") as file:
+        reader = csv.reader(file)
+        next(reader, None)  # Skip header
+        rows = list(reader)
+
+        if not rows:
+            return 1
+
+        last_id = int(rows[-1][0])  # Get the last ID in the file
+        return last_id + 1
+
+
+def add_card(name: str, price: float, image_path: str):
+    """Adds a new card to the inventory."""
+    card_id = get_next_id()
+    with open(CSV_FILE, mode="a", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow([card_id, name, price, image_path, "unsold", ""])
+    print(f"Card '{name}' added successfully with ID {card_id}.")
+
+
+def get_available_cards():
+    """Retrieves all unsold cards."""
+    available_cards = []
+    with open(CSV_FILE, mode="r", newline="") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            if row["Status"] == "unsold":
+                available_cards.append(row)
+    return available_cards
+
+
+def mark_card_as_sold(card_id: int, phone_number: str):
+    """Marks a card as sold and assigns it to the buyer."""
+    updated_rows = []
+    card_found = False
+
+    with open(CSV_FILE, mode="r", newline="") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            if int(row["ID"]) == card_id and row["Status"] == "unsold":
+                row["Status"] = "claimed"
+                row["Claimed By"] = phone_number
+                card_found = True
+            updated_rows.append(row)
+
+    if not card_found:
+        print(f"Card with ID {card_id} not found or already sold.")
+        return False
+
+    # Write back to the file
+    with open(CSV_FILE, mode="w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=["ID", "Name", "Price", "Image Path", "Status", "Claimed By"])
+        writer.writeheader()
+        writer.writerows(updated_rows)
+
+    print(f"Card ID {card_id} marked as sold to {phone_number}.")
+    return True
+
+
+def remove_old_inventory():
+    """Removes all sold cards from the inventory."""
+    updated_rows = []
+    with open(CSV_FILE, mode="r", newline="") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            if row["Status"] != "claimed":
+                updated_rows.append(row)
+
+    with open(CSV_FILE, mode="w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=["ID", "Name", "Price", "Image Path", "Status", "Claimed By"])
+        writer.writeheader()
+        writer.writerows(updated_rows)
+
+    print("Removed all sold cards from inventory.")
+
+
+# Ensure the CSV file exists before any operations
+initialize_csv()
