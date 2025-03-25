@@ -1,7 +1,7 @@
 import csv
 import os
 
-CSV_FILE = os.path.join(os.path.dirname(__file__), "../data/cards.csv")
+CSV_FILE = os.path.join(os.path.dirname(__file__), "../database/cards.csv")
 
 
 def initialize_csv():
@@ -95,6 +95,3 @@ def remove_old_inventory():
 
     print("Removed all sold cards from inventory.")
 
-
-# Ensure the CSV file exists before any operations
-initialize_csv()
